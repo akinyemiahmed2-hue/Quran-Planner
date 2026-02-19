@@ -85,6 +85,7 @@ export default function Page() {
   const [inputReadPages, setInputReadPages] = useState<number>(0);
 
   const [ramadanDay, setRamadanDay] = useState<number>(1);
+  const [ramadanDayInput, setRamadanDayInput] = useState<string>("1");
   const [progress, setProgress] = useState<ProgressState>({
     pagesCompleted: 0,
     lastUpdatedAt: null,
@@ -129,7 +130,10 @@ export default function Page() {
     if (Array.isArray(savedHistory)) setHistory(savedHistory.slice(0, 30));
 
     const savedRamadanDay = Number(localStorage.getItem(LS_KEYS.ramadanDay));
-    if (!Number.isNaN(savedRamadanDay) && savedRamadanDay > 0) setRamadanDay(savedRamadanDay);
+if (!Number.isNaN(savedRamadanDay) && savedRamadanDay > 0) {
+  setRamadanDay(savedRamadanDay);
+  setRamadanDayInput(String(savedRamadanDay));
+}
   }, []);
 
   useEffect(() => {
@@ -267,10 +271,12 @@ export default function Page() {
   }
 
   function setRamadanDayPersist(n: number) {
-    const v = clamp(n, 1, daysTotalFromPlan);
-    setRamadanDay(v);
-    localStorage.setItem(LS_KEYS.ramadanDay, String(v));
-  }
+  const v = clamp(n, 1, daysTotalFromPlan);
+  setRamadanDay(v);
+  setRamadanDayInput(String(v));
+  localStorage.setItem(LS_KEYS.ramadanDay, String(v));
+}
+
 
   const khatmahMeaning = "Khatmah = completing the Qur’an once";
 
@@ -470,13 +476,25 @@ export default function Page() {
               <div className="field">
                 <label>Ramadan day</label>
                 <input
-                  className="input"
-                  type="number"
-                  min={1}
-                  max={daysTotalFromPlan}
-                  value={ramadanDay}
-                  onChange={(e) => setRamadanDayPersist(Number(e.target.value))}
-                />
+  className="input"
+  type="number"
+  min={1}
+  max={daysTotalFromPlan}
+  value={ramadanDayInput}
+  onChange={(e) => {
+    const val = e.target.value;
+    setRamadanDayInput(val);
+
+    if (val === "") return;
+
+    const num = Number(val);
+    if (!Number.isNaN(num)) setRamadanDayPersist(num);
+  }}
+  onBlur={() => {
+    if (ramadanDayInput.trim() === "") setRamadanDayPersist(1);
+  }}
+/>
+
                 <div className="hint">
                   Based on plan days: <b>{daysTotalFromPlan}</b>
                 </div>
